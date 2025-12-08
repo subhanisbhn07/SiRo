@@ -7,6 +7,7 @@ import { Onboarding } from './pages/Onboarding';
 import { Dashboard } from './pages/Dashboard';
 import { SignDetail } from './pages/SignDetail';
 import { Meditate } from './pages/Meditate';
+import Admin from './pages/Admin';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -52,6 +53,11 @@ function AppRoutes() {
       <Route path="/meditate" element={
         <ProtectedRoute>
           <Meditate />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin" element={
+        <ProtectedRoute>
+          <Admin />
         </ProtectedRoute>
       } />
       <Route path="*" element={<Navigate to="/" replace />} />
