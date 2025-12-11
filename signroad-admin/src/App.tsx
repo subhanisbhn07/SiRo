@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from './services/api';
-import type { User, Analytics, AudioLesson, DailyMessage, Sign, Page, PricingConfig, UserWithStats } from './types';
+import type { User, Analytics, AudioLesson, DailyMessage, Sign, Page, PricingConfig, UserWithStats, AppSettings, CardVisibilitySettings } from './types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,11 +25,16 @@ import {
   Trash2,
   Flame,
   Target,
-  Calendar
+  Calendar,
+  Settings,
+  Monitor,
+  Tablet,
+  Smartphone,
+  RotateCcw
 } from 'lucide-react';
 import './App.css';
 
-type ActivePage = 'dashboard' | 'users' | 'lessons' | 'messages' | 'signs' | 'pages' | 'pricing';
+type ActivePage = 'dashboard' | 'users' | 'lessons' | 'messages' | 'signs' | 'pages' | 'pricing' | 'settings';
 
 function LoginPage({ onLogin }: { onLogin: (user: User) => void }) {
   const [email, setEmail] = useState('admin@signroad.com');
@@ -116,6 +121,7 @@ function Sidebar({ activePage, setActivePage, onLogout }: {
     { id: 'signs' as const, label: 'Signs Catalog', icon: Sparkles },
     { id: 'pages' as const, label: 'CMS Pages', icon: FileText },
     { id: 'pricing' as const, label: 'Pricing', icon: DollarSign },
+    { id: 'settings' as const, label: 'App Settings', icon: Settings },
   ];
 
   return (
@@ -1239,6 +1245,264 @@ function PricingPage() {
   );
 }
 
+// Card display names for the admin panel
+const cardDisplayNames: Record<keyof CardVisibilitySettings, string> = {
+  heroCarousel: 'Hero Carousel',
+  todayCard: 'Today Card',
+  sparksRewards: 'Sparks & Rewards',
+  tribesCard: 'Your Tribe',
+  latestWin: 'Latest Win',
+  manifestedWins: 'Manifested Wins Feed',
+  personalGreeting: 'Personal Greeting',
+  exploreByIntention: 'Explore by Intention',
+  startYourJourney: 'Start Your Journey',
+  whatOthersLove: 'What Others Love',
+  editorsPicks: "Editor's Picks",
+  userStories: 'User Stories',
+  blogSection: 'Blog Section',
+  newsletterSignup: 'Newsletter Signup',
+};
+
+const defaultCardVisibility: CardVisibilitySettings = {
+  heroCarousel: { desktop: true, tablet: true, mobile: true },
+  todayCard: { desktop: true, tablet: true, mobile: true },
+  sparksRewards: { desktop: true, tablet: true, mobile: true },
+  tribesCard: { desktop: true, tablet: true, mobile: true },
+  latestWin: { desktop: true, tablet: true, mobile: true },
+  manifestedWins: { desktop: true, tablet: true, mobile: true },
+  personalGreeting: { desktop: true, tablet: true, mobile: true },
+  exploreByIntention: { desktop: true, tablet: true, mobile: true },
+  startYourJourney: { desktop: true, tablet: true, mobile: true },
+  whatOthersLove: { desktop: true, tablet: true, mobile: true },
+  editorsPicks: { desktop: true, tablet: true, mobile: true },
+  userStories: { desktop: true, tablet: true, mobile: true },
+  blogSection: { desktop: true, tablet: true, mobile: true },
+  newsletterSignup: { desktop: true, tablet: true, mobile: true },
+};
+
+function AppSettingsPage() {
+  const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const trialOptions = [7, 14, 21, 30];
+
+  const loadSettings = async () => {
+    setLoading(true);
+    try {
+      const data = await api.getAppSettings();
+      setSettings(data.settings);
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+      // Use defaults if backend fails
+      setSettings({
+        free_trial_days: 7,
+        card_visibility: defaultCardVisibility,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const handleSave = async () => {
+    if (!settings) return;
+    setSaving(true);
+    try {
+      await api.updateAppSettings(settings);
+      alert('Settings saved successfully!');
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+      alert('Failed to save settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const setTrialDays = (days: number) => {
+    if (settings) {
+      setSettings({ ...settings, free_trial_days: days });
+    }
+  };
+
+  const setCardVisibility = (
+    cardId: keyof CardVisibilitySettings,
+    device: 'desktop' | 'tablet' | 'mobile',
+    visible: boolean
+  ) => {
+    if (settings) {
+      setSettings({
+        ...settings,
+        card_visibility: {
+          ...settings.card_visibility,
+          [cardId]: {
+            ...settings.card_visibility[cardId],
+            [device]: visible,
+          },
+        },
+      });
+    }
+  };
+
+  const resetCardVisibility = () => {
+    if (settings) {
+      setSettings({
+        ...settings,
+        card_visibility: defaultCardVisibility,
+      });
+    }
+  };
+
+  if (loading) return <div className="p-8">Loading...</div>;
+  if (!settings) return <div className="p-8">Failed to load settings</div>;
+
+  return (
+    <div className="p-8">
+      <h1 className="text-2xl font-bold mb-6">App Settings</h1>
+      
+      <div className="max-w-3xl space-y-6">
+        {/* Free Trial Days */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              Free Trial Days
+            </CardTitle>
+            <CardDescription>
+              Configure the number of free trial days for new users (global setting)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-4 gap-2">
+              {trialOptions.map((days) => (
+                <Button
+                  key={days}
+                  variant={settings.free_trial_days === days ? 'default' : 'outline'}
+                  onClick={() => setTrialDays(days)}
+                  className={settings.free_trial_days === days ? 'bg-teal-500 hover:bg-teal-600' : ''}
+                >
+                  {days} days
+                </Button>
+              ))}
+            </div>
+            <p className="text-sm text-slate-500 mt-3">
+              Currently set to {settings.free_trial_days} free days for new users
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Card Visibility */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="w-5 h-5" />
+                  Homepage Card Visibility
+                </CardTitle>
+                <CardDescription>
+                  Control which cards appear on each device type (global setting)
+                </CardDescription>
+              </div>
+              <Button variant="outline" size="sm" onClick={resetCardVisibility}>
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reset All
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {/* Device Legend */}
+            <div className="flex items-center gap-6 mb-4 pb-4 border-b">
+              <div className="flex items-center gap-2">
+                <Monitor className="w-4 h-4 text-slate-500" />
+                <span className="text-sm text-slate-500">Desktop</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Tablet className="w-4 h-4 text-slate-500" />
+                <span className="text-sm text-slate-500">Tablet</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Smartphone className="w-4 h-4 text-slate-500" />
+                <span className="text-sm text-slate-500">Mobile</span>
+              </div>
+            </div>
+
+            {/* Card Visibility Grid */}
+            <div className="space-y-3">
+              {(Object.keys(settings.card_visibility) as Array<keyof CardVisibilitySettings>).map((cardId) => (
+                <div
+                  key={cardId}
+                  className="flex items-center justify-between p-3 rounded-lg bg-slate-50"
+                >
+                  <span className="text-sm font-medium text-slate-700">
+                    {cardDisplayNames[cardId]}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {/* Desktop Toggle */}
+                    <button
+                      onClick={() => setCardVisibility(cardId, 'desktop', !settings.card_visibility[cardId].desktop)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        settings.card_visibility[cardId].desktop
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-slate-200 text-slate-400'
+                      }`}
+                      title={`Desktop: ${settings.card_visibility[cardId].desktop ? 'Visible' : 'Hidden'}`}
+                    >
+                      <Monitor className="w-4 h-4" />
+                    </button>
+                    {/* Tablet Toggle */}
+                    <button
+                      onClick={() => setCardVisibility(cardId, 'tablet', !settings.card_visibility[cardId].tablet)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        settings.card_visibility[cardId].tablet
+                          ? 'bg-teal-500 text-white'
+                          : 'bg-slate-200 text-slate-400'
+                      }`}
+                      title={`Tablet: ${settings.card_visibility[cardId].tablet ? 'Visible' : 'Hidden'}`}
+                    >
+                      <Tablet className="w-4 h-4" />
+                    </button>
+                    {/* Mobile Toggle */}
+                    <button
+                      onClick={() => setCardVisibility(cardId, 'mobile', !settings.card_visibility[cardId].mobile)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        settings.card_visibility[cardId].mobile
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-slate-200 text-slate-400'
+                      }`}
+                      title={`Mobile: ${settings.card_visibility[cardId].mobile ? 'Visible' : 'Hidden'}`}
+                    >
+                      <Smartphone className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+              <p className="text-sm text-emerald-700">
+                <strong>Tip:</strong> Click the device icons to toggle visibility. Green = Desktop, Teal = Tablet, Gold = Mobile.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Save Button */}
+        <Button onClick={handleSave} disabled={saving} className="w-full bg-teal-500 hover:bg-teal-600">
+          {saving ? 'Saving...' : 'Save Settings'}
+        </Button>
+
+        <p className="text-center text-sm text-slate-500">
+          These settings are stored in the backend and apply globally to all users.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [activePage, setActivePage] = useState<ActivePage>('dashboard');
@@ -1288,6 +1552,7 @@ function App() {
       case 'signs': return <SignsPage />;
       case 'pages': return <PagesPage />;
       case 'pricing': return <PricingPage />;
+      case 'settings': return <AppSettingsPage />;
       default: return <DashboardPage />;
     }
   };

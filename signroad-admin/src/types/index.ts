@@ -96,3 +96,31 @@ export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
 }
+
+export interface CardVisibility {
+  desktop: boolean;
+  tablet: boolean;
+  mobile: boolean;
+}
+
+export interface CardVisibilitySettings {
+  heroCarousel: CardVisibility;
+  todayCard: CardVisibility;
+  sparksRewards: CardVisibility;
+  tribesCard: CardVisibility;
+  latestWin: CardVisibility;
+  manifestedWins: CardVisibility;
+  personalGreeting: CardVisibility;
+  exploreByIntention: CardVisibility;
+  startYourJourney: CardVisibility;
+  whatOthersLove: CardVisibility;
+  editorsPicks: CardVisibility;
+  userStories: CardVisibility;
+  blogSection: CardVisibility;
+  newsletterSignup: CardVisibility;
+}
+
+export interface AppSettings {
+  free_trial_days: number;
+  card_visibility: CardVisibilitySettings;
+}

@@ -7,7 +7,8 @@ import type {
   Page, 
   PricingConfig, 
   Analytics,
-  AuthResponse 
+  AuthResponse,
+  AppSettings
 } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -186,6 +187,17 @@ class ApiService {
 
   async updatePricing(data: Partial<PricingConfig>): Promise<{ pricing: PricingConfig }> {
     return this.request('/api/admin/pricing', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getAppSettings(): Promise<{ settings: AppSettings }> {
+    return this.request('/api/admin/settings');
+  }
+
+  async updateAppSettings(data: Partial<AppSettings>): Promise<{ settings: AppSettings }> {
+    return this.request('/api/admin/settings', {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
