@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { 
   Users, 
@@ -261,7 +261,7 @@ function UsersPage() {
   const updateUserStatus = async (id: string, status: string) => {
     await api.updateUser(id, { subscription_status: status as User['subscription_status'] });
     loadUsers();
-    if (selectedUser?.user.id === id) {
+    if (selectedUser?.id === id) {
       const data = await api.getUser(id);
       setSelectedUser(data);
     }
@@ -346,40 +346,40 @@ function UsersPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Name</Label>
-                  <p className="font-medium">{selectedUser.user.name}</p>
+                  <p className="font-medium">{selectedUser.name}</p>
                 </div>
                 <div>
                   <Label>Email</Label>
-                  <p className="font-medium">{selectedUser.user.email}</p>
+                  <p className="font-medium">{selectedUser.email}</p>
                 </div>
                 <div>
                   <Label>Status</Label>
-                  <div className="mt-1">{getStatusBadge(selectedUser.user.subscription_status)}</div>
+                  <div className="mt-1">{getStatusBadge(selectedUser.subscription_status)}</div>
                 </div>
                 <div>
                   <Label>Role</Label>
-                  <p className="font-medium capitalize">{selectedUser.user.role}</p>
+                  <p className="font-medium capitalize">{selectedUser.role}</p>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <Card>
                   <CardContent className="p-4 text-center">
                     <Flame className="w-6 h-6 mx-auto text-amber-500 mb-1" />
-                    <p className="text-2xl font-bold">{selectedUser.user.lantern_health}</p>
+                    <p className="text-2xl font-bold">{selectedUser.lantern_health}</p>
                     <p className="text-sm text-slate-500">Lantern Health</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4 text-center">
                     <Sparkles className="w-6 h-6 mx-auto text-yellow-500 mb-1" />
-                    <p className="text-2xl font-bold">{selectedUser.user.sparks}</p>
+                    <p className="text-2xl font-bold">{selectedUser.sparks}</p>
                     <p className="text-sm text-slate-500">Sparks</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4 text-center">
                     <Target className="w-6 h-6 mx-auto text-teal-500 mb-1" />
-                    <p className="text-2xl font-bold">{selectedUser.user.streak_days}</p>
+                    <p className="text-2xl font-bold">{selectedUser.streak_days}</p>
                     <p className="text-sm text-slate-500">Streak Days</p>
                   </CardContent>
                 </Card>
@@ -419,9 +419,9 @@ function UsersPage() {
                   {['free_trial', 'active', 'cancelled', 'expired'].map((status) => (
                     <Button
                       key={status}
-                      variant={selectedUser.user.subscription_status === status ? 'default' : 'outline'}
+                      variant={selectedUser.subscription_status === status ? 'default' : 'outline'}
                       size="sm"
-                      onClick={() => updateUserStatus(selectedUser.user.id, status)}
+                      onClick={() => updateUserStatus(selectedUser.id, status)}
                     >
                       {status.replace('_', ' ')}
                     </Button>
@@ -440,7 +440,6 @@ function LessonsPage() {
   const [lessons, setLessons] = useState<AudioLesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingLesson, setEditingLesson] = useState<AudioLesson | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     step_number: 1,
@@ -472,7 +471,6 @@ function LessonsPage() {
       await api.createLesson(formData);
     }
     setEditingLesson(null);
-    setIsCreating(false);
     setDialogOpen(false);
     loadLessons();
   };
@@ -498,7 +496,6 @@ function LessonsPage() {
   };
 
   const openCreate = () => {
-    setIsCreating(true);
     setEditingLesson(null);
     setFormData({
       step_number: lessons.length + 1,
@@ -569,7 +566,7 @@ function LessonsPage() {
         </Card>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setIsCreating(false); setEditingLesson(null); } }}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingLesson(null); } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingLesson ? 'Edit Lesson' : 'Create Lesson'}</DialogTitle>
@@ -636,7 +633,6 @@ function MessagesPage() {
   const [messages, setMessages] = useState<DailyMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingMessage, setEditingMessage] = useState<DailyMessage | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     content: '',
@@ -665,7 +661,6 @@ function MessagesPage() {
       await api.createMessage(formData);
     }
     setEditingMessage(null);
-    setIsCreating(false);
     setDialogOpen(false);
     loadMessages();
   };
@@ -688,7 +683,6 @@ function MessagesPage() {
   };
 
   const openCreate = () => {
-    setIsCreating(true);
     setEditingMessage(null);
     setFormData({
       content: '',
@@ -741,7 +735,7 @@ function MessagesPage() {
         </div>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setIsCreating(false); setEditingMessage(null); } }}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingMessage(null); } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingMessage ? 'Edit Message' : 'Create Message'}</DialogTitle>
@@ -785,7 +779,6 @@ function SignsPage() {
   const [signs, setSigns] = useState<Sign[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingSign, setEditingSign] = useState<Sign | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -816,7 +809,6 @@ function SignsPage() {
       await api.createSign(formData);
     }
     setEditingSign(null);
-    setIsCreating(false);
     setDialogOpen(false);
     loadSigns();
   };
@@ -841,7 +833,6 @@ function SignsPage() {
   };
 
   const openCreate = () => {
-    setIsCreating(true);
     setEditingSign(null);
     setFormData({
       name: '',
@@ -904,7 +895,7 @@ function SignsPage() {
         </div>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setIsCreating(false); setEditingSign(null); } }}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingSign(null); } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingSign ? 'Edit Sign' : 'Create Sign'}</DialogTitle>
@@ -962,7 +953,6 @@ function PagesPage() {
   const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingPage, setEditingPage] = useState<Page | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     slug: '',
@@ -992,7 +982,6 @@ function PagesPage() {
       await api.createPage(formData);
     }
     setEditingPage(null);
-    setIsCreating(false);
     setDialogOpen(false);
     loadPages();
   };
@@ -1016,7 +1005,6 @@ function PagesPage() {
   };
 
   const openCreate = () => {
-    setIsCreating(true);
     setEditingPage(null);
     setFormData({
       slug: '',
@@ -1080,7 +1068,7 @@ function PagesPage() {
         </Card>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setIsCreating(false); setEditingPage(null); } }}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingPage(null); } }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editingPage ? 'Edit Page' : 'Create Page'}</DialogTitle>
